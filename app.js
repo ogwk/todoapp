@@ -2,6 +2,8 @@
 
 var express = require('express'),
     app = express();
+//クッキー
+var cookieParser = require('cookie-parser');
 //セッション
 var session = require('express-session');
 //ビュー
@@ -27,6 +29,15 @@ app.get('/', function(req, res){
     }
     res.render('index',{visitCount:session.visitCount
     });
+
+    /*res.cookie('name1','value1', {
+        maxAge:60000,
+        httpOnly:false,
+        domain:'.wakuwaku.com',
+        path:'/cookie',
+        secure:true
+    })
+    */
 })
 
 app.listen(8000);
