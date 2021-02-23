@@ -9,6 +9,14 @@ var session = require('express-session');
 //ビュー
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
+//ログイン機能
+var passport = require('passport');
+var bodyParser = require('body-parser');
+//データベース
+const Post = require('./models/user');
+const flash = require('connect-flash');
+
+app.use(flash());
 
 app.use(session({
     secret:"secret word", //クッキーを保存するセッションIDを署名するために使用される秘密ワード
@@ -19,7 +27,87 @@ app.use(session({
     }
 }));
 
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+
+
+var LocalStrategy = require('passport-local').Strategy;
+
+passport.use(new LocalStrategy(function(username, password, done)
+    {
+        console.log("test");
+        User.findOne({ where: { username: [username] } },function(err, user)
+        { //
+            if (err)
+            { 
+                 return done(err);
+            }
+            if (!user) {
+                console.log("test2");
+                return done(null, false, { message: 'ユーザーIDが正しくありません。' });
+            }
+            if (!user.validPassword(password)) {
+                console.log("test3");
+                return done(null, false, { message: 'パスワードが正しくありません。' });
+            }
+            console.log("test4");
+            return done(null, user);
+        });
+    })
+);
+
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+  });
+  
+  passport.deserializeUser(function(id, done) {
+    User.findById(id, function(err, user) {
+      done(err, user);
+    });
+  });
+
 //middleware
+/*
+app.use(session({
+    secret:"secret word", //クッキーを保存するセッションIDを署名するために使用される秘密ワード
+    resave:false,//セッションをセッションス)トアに強制的に保存するかどうか
+    saveUninitialized:false,//初期化されていないセッションを強制的に保存するかどうか
+    cookie: {
+        maxAge:60*1000//クッキーの保存期間
+    }
+}));
+*/
+app.get('/login',(req, res, next)=>{
+    let {login, error} = req.flash();
+    
+    res.render('login', {error: error});
+});
+
+app.post('/login',(req, res, next)=>{                         /* 横取り開始 */
+    req.flash('login', req.body.name);         /* ID を 'login' に保存 */
+    if (! req.body.name) {                     /* ID未入力の場合 */
+        req.flash('error', 'Usernameが未入力');
+        res.redirect('/login');                 /* 認証処理は呼ばない */
+    }
+    else if (! req.body.password) {               /* ID未入力の場合 */
+        req.flash('error', 'Passwordが未入力');
+        res.redirect('/login');                 /* 認証処理は呼ばない */
+    }
+    else {
+        
+        next();
+        }                      /* フォームに入力があれば認証処理を呼ぶ */
+    },
+    passport.authenticate('local',{
+        successRedirect: '/',
+        failureRedirect: '/login',
+        failureFlash:    true
+    })
+);
+
 app.get('/', function(req, res){
     var session = req.session;
     if (!!session.visitCount) {
@@ -39,6 +127,11 @@ app.get('/', function(req, res){
     })
     */
 })
+
+
+
+
+
 
 app.listen(8000);
 console.log("server starting...");

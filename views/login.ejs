@@ -1,0 +1,16 @@
+<form action="/login" method="post">
+    <div>
+        <label>ユーザーID：</label>
+        <input type="text" name="name"/>
+    </div>
+    <div>
+        <label>パスワード：</label>
+        <input type="password" name="password"/>
+    </div>
+    <div>
+        <input type="submit" value="ログイン"/>
+    </div>
+    <h5>
+        <%= error %>
+    </h5>
+</form>    
