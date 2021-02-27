@@ -1,20 +1,21 @@
 'use strict';
 
-var express = require('express'),
-    app = express();
+const express = require('express')
+const app = express();
 //クッキー
-var cookieParser = require('cookie-parser');
+const cookieParser = require('cookie-parser');
 //セッション
-var session = require('express-session');
+const session = require('express-session');
 //ビュー
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 //ログイン機能
-var passport = require('passport');
-var bodyParser = require('body-parser');
+const passport = require('passport');
+const bodyParser = require('body-parser');
 //データベース
 const Post = require('./models/user');
 const flash = require('connect-flash');
+
 
 app.use(flash());
 
@@ -27,90 +28,61 @@ app.use(session({
     }
 }));
 
+app.use(express.json())
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(bodyParser.urlencoded({ extended: true }));
+
 
 //DB接続
-var {Client} = require('pg'); 
+const { Pool, Client } = require('pg')
+const user = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'users',
+    password:'postgres',
+    port:5432
+});
 
+const todolist = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'tododatalist',
+    password:'postgres',
+    port:5432
+});
 
-var LocalStrategy = require('passport-local').Strategy;
+const LocalStrategy = require('passport-local').Strategy;
+const { password } = require('pg/lib/defaults');
 
 //ログインチェック
 passport.use(new LocalStrategy(function(username, password, done)
 {
-    //ここを通らない
-    console.log(username);　
-    console.log(password);
-    if (username === "test" && password === "test") {
-        return done(null, username)
-      } else {
-        console.log("login error")
-        return done(null, false, { message: 'パスワードが正しくありません。' })
-      }
-    })
-);
-/*
-    {
-        
-        console.log("test");
-        User.findOne({ where: { username: [username] } },function(err, user)
-        { //
-            if (err)
-            { 
-                 return done(err);
-            }
-            if (!user) {
-                console.log("test2");
-                return done(null, false, { message: 'ユーザーIDが正しくありません。' });
-            }
-            if (!user.validPassword(password)) {
-                console.log("test3");
-                return done(null, false, { message: 'パスワードが正しくありません。' });
-            }
-            console.log("test4");
-            return done(null, user);
-        });
-    }
-*/
-/*
-{
-    var client = new Client({
-        user: 'postgres',
-        host: 'localhost',
-        database: 'users',
-        password:'postgres',
-        port:8000
-    });
-    const query = 'select * from users where users.name =' + username;
-    client.query(query, function(err, res) {
-        console.log(query);
-        console.log(res);
-        if(err){
-
-        }
-        if(res.password === password){
-
+    const query = 'select * from "users" where users.username = $1';
+    const value = [username];
+    user.connect()    
+    .then(() => console.log("Connected successfuly"))
+    .then(() => user.query(query,value))
+    .then(result => {
+        if(result.rows[0].password === password){
+            console.log('success');
+            return done(null, username);
         }else{
+            console.log('bad');
+            return done(null, false, { message: 'パスワードが正しくありません。' });
+        }})
+    .catch((e => console.log(e)))
+}));
 
-        }
-    })
-}
-));
-*/
-/*
-passport.serializeUser(function(user, done) {
-    done(null, user.id);
-  });
+passport.serializeUser(function(username, done) {
+    done(null, username);
+});
   
-  passport.deserializeUser(function(id, done) {
-    User.findById(id, function(err, user) {
-      done(err, user);
-    });
-  });
-*/
+passport.deserializeUser(function(username, done) {
+    done(null, username);
+});
+
 //middleware
 /*
 app.use(session({
@@ -125,16 +97,20 @@ app.use(session({
 
 app.get('/login',(req, res, next)=>{
     let {login, error} = req.flash();
-    res.render('login', {error: error});
+    res.render('login');
 });
 
 app.post('/login',(req, res, next)=>{                         /* 横取り開始 */
-    req.flash('login', req.body.name);         /* ID を 'login' に保存 */
-    if (! req.body.name) {                     /* ID未入力の場合 */
+    console.log(req);
+    const username = req.body.username;
+    const password = req.body.password;
+
+    req.flash('login', username);   
+    if (! username) {                     /* ID未入力の場合 */
         req.flash('error', 'Usernameが未入力');
         res.redirect('/login');                 /* 認証処理は呼ばない */
     }
-    else if (! req.body.password) {               /* ID未入力の場合 */
+    else if (! password) {               /* ID未入力の場合 */
         req.flash('error', 'Passwordが未入力');
         res.redirect('/login');                 /* 認証処理は呼ばない */
     }
@@ -143,23 +119,24 @@ app.post('/login',(req, res, next)=>{                         /* 横取り開始
         next();
         }                      /* フォームに入力があれば認証処理を呼ぶ */
     },
-    passport.authenticate('local',{
-        
+    passport.authenticate('local',{  
         successRedirect: '/',
         failureRedirect: '/login',
         failureFlash:    true
     })
 );
 
-app.get('/', function(req, res){
-    var session = req.session;
-    if (!!session.visitCount) {
-        session.visitCount += 1;
-    } else {
-        session.visitCount = 1;
-    }
-    res.render('index',{visitCount:session.visitCount
-    });
+app.get('/：username', function(req, res){
+    console.log('call ejs')
+    todolist.connect()    
+    .then(() => console.log("Connected successfuly"))
+    .then(() => todolist.query('select * from "todolist"'))
+    .then(results => {
+        console.log(results.rows);
+        res.render('index',{username:req.prams.username, datas:results});})
+    .catch((e => console.log(e)))
+});
+
 
     /*res.cookie('name1','value1', {
         maxAge:60000,
@@ -169,9 +146,17 @@ app.get('/', function(req, res){
         secure:true
     })
     */
-})
 
-
+app.post('/', function(req,res){
+    const adddata = req.body.add;
+    const query = 'INSERT INTO "todolist"(data, date) VALUES($1, CURRENT_DATE) RETURNING *';
+    const value = [adddata];
+    todolist.query(query, value)
+    .then(result => {
+        console.log('new data add');
+        res.redirect('/');})
+    .catch((e => console.log(e)))
+});
 
 
 
