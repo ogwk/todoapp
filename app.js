@@ -67,7 +67,7 @@ passport.use(new LocalStrategy(function(username, password, done)
     .then(result => {
         if(result.rows[0].password === password){
             console.log('success');
-            return done(null, username);
+            return done(null, { username: username, password: password});
         }else{
             console.log('bad');
             return done(null, false, { message: 'パスワードが正しくありません。' });
@@ -75,25 +75,13 @@ passport.use(new LocalStrategy(function(username, password, done)
     .catch((e => console.log(e)))
 }));
 
-passport.serializeUser(function(username, done) {
-    done(null, username);
+passport.serializeUser(function(user, done) {
+    done(null, user);
 });
   
-passport.deserializeUser(function(username, done) {
-    done(null, username);
+passport.deserializeUser(function(user, done) {
+    done(null, user);
 });
-
-//middleware
-/*
-app.use(session({
-    secret:"secret word", //クッキーを保存するセッションIDを署名するために使用される秘密ワード
-    resave:false,//セッションをセッションス)トアに強制的に保存するかどうか
-    saveUninitialized:false,//初期化されていないセッションを強制的に保存するかどうか
-    cookie: {
-        maxAge:60*1000//クッキーの保存期間
-    }
-}));
-*/
 
 app.get('/login',(req, res, next)=>{
     let {login, error} = req.flash();
@@ -115,7 +103,6 @@ app.post('/login',(req, res, next)=>{                         /* 横取り開始
         res.redirect('/login');                 /* 認証処理は呼ばない */
     }
     else {
-        
         next();
         }                      /* フォームに入力があれば認証処理を呼ぶ */
     },
@@ -126,26 +113,21 @@ app.post('/login',(req, res, next)=>{                         /* 横取り開始
     })
 );
 
-app.get('/：username', function(req, res){
+app.get('/', function(req, res){
     console.log('call ejs')
     todolist.connect()    
     .then(() => console.log("Connected successfuly"))
     .then(() => todolist.query('select * from "todolist"'))
     .then(results => {
-        console.log(results.rows);
-        res.render('index',{username:req.prams.username, datas:results});})
+        console.log(req.session);
+        if(!req.user){
+            var user = {username:"nobody", password:""};
+        }else{
+            var user = req.user
+        }
+        res.render('index',{user: user, datas:results});})
     .catch((e => console.log(e)))
 });
-
-
-    /*res.cookie('name1','value1', {
-        maxAge:60000,
-        httpOnly:false,
-        domain:'.wakuwaku.com',
-        path:'/cookie',
-        secure:true
-    })
-    */
 
 app.post('/', function(req,res){
     const adddata = req.body.add;
@@ -154,12 +136,14 @@ app.post('/', function(req,res){
     todolist.query(query, value)
     .then(result => {
         console.log('new data add');
-        res.redirect('/');})
+        res.redirect('/')})
     .catch((e => console.log(e)))
 });
 
-
-
+//ログアウト
+app.post('/logout', function(req,res){
+    res.redirect('/login')
+});
 
 app.listen(8000);
 console.log("server starting...");
