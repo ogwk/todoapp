@@ -10,7 +10,7 @@ create database users OWNER=postgres;
 drop table if exists users;
 create table if not exists users (
     id serial,
-    name text,
+    username text,
     password text,
     trackingCookie text,
     primary key(id)
@@ -18,3 +18,16 @@ create table if not exists users (
 
 insert into users(name, password) values('test', 'test');
 
+drop database if exists tododatalist;
+create database tododatalist OWNER=postgres;
+
+\connect todolist;
+
+drop table if exists todolist;
+create table if not exists todolist (
+    id serial,
+    data text,
+    date date,
+    adduser text,
+    primary key(id)
+);

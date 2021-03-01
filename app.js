@@ -85,11 +85,15 @@ passport.deserializeUser(function(user, done) {
 
 app.get('/login',(req, res, next)=>{
     let {login, error} = req.flash();
-    res.render('login');
+    if(!error){
+        error = '';
+    }else{
+
+    }
+    res.render('login', {errormessage:error});
 });
 
 app.post('/login',(req, res, next)=>{                         /* 横取り開始 */
-    console.log(req);
     const username = req.body.username;
     const password = req.body.password;
 
@@ -114,12 +118,13 @@ app.post('/login',(req, res, next)=>{                         /* 横取り開始
 );
 
 app.get('/', function(req, res){
-    console.log('call ejs')
+    const query = 'select * from "todolist" where adduser = $1';
+    const value = [req.user.username];
+    console.log(req.user.username);
     todolist.connect()    
     .then(() => console.log("Connected successfuly"))
-    .then(() => todolist.query('select * from "todolist"'))
+    .then(() => todolist.query(query,value))
     .then(results => {
-        console.log(req.session);
         if(!req.user){
             var user = {username:"nobody", password:""};
         }else{
@@ -131,14 +136,15 @@ app.get('/', function(req, res){
 
 app.post('/', function(req,res){
     const adddata = req.body.add;
-    const query = 'INSERT INTO "todolist"(data, date) VALUES($1, CURRENT_DATE) RETURNING *';
-    const value = [adddata];
+    const query = 'INSERT INTO "todolist"(data, date, adduser) VALUES($1, CURRENT_DATE, $2) RETURNING *';
+    const value = [adddata, req.user.username];
     todolist.query(query, value)
     .then(result => {
         console.log('new data add');
         res.redirect('/')})
     .catch((e => console.log(e)))
 });
+
 
 //ログアウト
 app.post('/logout', function(req,res){
