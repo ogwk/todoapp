@@ -9,6 +9,9 @@ const session = require('express-session');
 //ビュー
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
+
+//post
+const post = require('./routes/posts');
 //ログイン機能
 const passport = require('passport');
 const bodyParser = require('body-parser');
@@ -118,9 +121,9 @@ app.post('/login',(req, res, next)=>{                         /* 横取り開始
 );
 
 app.get('/', function(req, res){
-    const query = 'select * from "todolist" where adduser = $1';
+    const query = 'select * from "todolist" where adduser = $1 and flgdone = false';
     const value = [req.user.username];
-    console.log(req.user.username);
+ 
     todolist.connect()    
     .then(() => console.log("Connected successfuly"))
     .then(() => todolist.query(query,value))
@@ -145,21 +148,19 @@ app.post('/', function(req,res){
     .catch((e => console.log(e)))
 });
 app.post('/done', function(req,res){
-    const query = 'update "todolist" set flgdone = $1 where id = $2';
-    const value = [req.body.doneflg, req.body.iddata];
-    console.log(req.body.doneflg);
-    console.log(req.body.iddata);
+    console.log('id' + req.body.id);
+    console.log('flgdone' + req.body);
+/*
+    const query = 'update "todolist" set flgdone = true where id ＝ $1';
+    const value = [req.body.id];
+    console.log(req);
     todolist.connect()    
-    .then(() => console.log("Connected successfuly"))
+    .then(() => console.log("done successfuly"))
     .then(() => todolist.query(query,value))
     .then(results => {
-        if(!req.user){
-            var user = {username:"nobody", password:""};
-        }else{
-            var user = req.user
-        }
         res.redirect('/');})
     .catch((e => console.log(e)))    
+*/
 });
 
 //ログアウト

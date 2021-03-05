@@ -19,8 +19,14 @@
     </form>
     <form action="/done" method="post">
         <% for(let i=0;i< datas.rowCount;i++){%>
-        <li><input type="checkbox" name="doneflg"　VALUE=<%= datas.rows[i].flgdone %>>　<input TYPE="HIDDEN" NAME="iddata" VALUE=<%= datas.rows[i].id %>><%= datas.rows[i].data %></li>
+            <li>
+                <%let num = datas.rows[i].id%>
+                <input type="hidden" name="id" value=<%=num%>>
+                <input type="checkbox" name="doneflg"　VALUE=<%=num%>>
+                <%=datas.rows[i].data%>
+            </li>
         <%}%>
+        <input type="submit" value = "done"/>
     </form>
     
     <footer>
