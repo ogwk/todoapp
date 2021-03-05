@@ -136,7 +136,7 @@ app.get('/', function(req, res){
 
 app.post('/', function(req,res){
     const adddata = req.body.add;
-    const query = 'INSERT INTO "todolist"(data, date, adduser) VALUES($1, CURRENT_DATE, $2) RETURNING *';
+    const query = 'INSERT INTO "todolist"(data, date, adduser, flgdone) VALUES($1, CURRENT_DATE, $2,false) RETURNING *';
     const value = [adddata, req.user.username];
     todolist.query(query, value)
     .then(result => {
@@ -144,10 +144,27 @@ app.post('/', function(req,res){
         res.redirect('/')})
     .catch((e => console.log(e)))
 });
-
+app.post('/done', function(req,res){
+    const query = 'update "todolist" set flgdone = $1 where id = $2';
+    const value = [req.body.doneflg, req.body.iddata];
+    console.log(req.body.doneflg);
+    console.log(req.body.iddata);
+    todolist.connect()    
+    .then(() => console.log("Connected successfuly"))
+    .then(() => todolist.query(query,value))
+    .then(results => {
+        if(!req.user){
+            var user = {username:"nobody", password:""};
+        }else{
+            var user = req.user
+        }
+        res.redirect('/');})
+    .catch((e => console.log(e)))    
+});
 
 //ログアウト
 app.post('/logout', function(req,res){
+    //cookie削除
     res.redirect('/login')
 });
 

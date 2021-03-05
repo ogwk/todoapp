@@ -29,5 +29,6 @@ create table if not exists todolist (
     data text,
     date date,
     adduser text,
+    flgdone boolean,
     primary key(id)
 );
