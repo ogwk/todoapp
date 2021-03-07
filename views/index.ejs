@@ -8,6 +8,7 @@
 <body>
     <header>
         <h1><%=user.username%>のToDoリスト</h1>
+        <a href="/donelist">完了タスク</a>
         <form action="/logout" method="post">
             <input type="submit" value="ログアウト"/>
         </form>
@@ -22,7 +23,7 @@
             <li>
                 <%let num = datas.rows[i].id%>
                 <input type="hidden" name="id" value=<%=num%>>
-                <input type="checkbox" name="doneflg"　VALUE=<%=num%>>
+                <input type="checkbox" name="datalist"value=<%=num%>>
                 <%=datas.rows[i].data%>
             </li>
         <%}%>

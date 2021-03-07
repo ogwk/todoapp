@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="jpn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <h1><%=user.username%>の完了済みリスト</h1>
+        <a href="/">Todoリストに戻る</a>
+        <form action="/logout" method="post">
+            <input type="submit" value="ログアウト"/>
+        </form>
+    </header>
+    <% for(let i=0;i< datas.rowCount;i++){%>
+        <li>
+            <%let num = datas.rows[i].id%>
+            <%=datas.rows[i].data%>
+        </li>
+    <%}%>
+    <footer>
+
+    </footer>
+</body>
+</html>

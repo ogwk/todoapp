@@ -1,0 +1,23 @@
+<form action="/useradd" method="post">
+    <h2>登録するユーザー名と、パスワードを入力してください。</h2>
+    <a href="/login">戻る</a>
+    <div>
+        <label>名前　　　        ：</label>
+        <input type="text" name="username"/>
+    </div>
+    <div>
+        <label>パスワード        ：</label>
+        <input type="password" name="password1"/>
+    </div>
+    <div>
+        <label>パスワード（再入力）：</label>
+        <input type="password" name="password2"/>
+    </div>    
+    <div>
+        <input type="submit" value="ユーザー登録"/>
+    </div>
+</form>    
+
+<h5>
+    <%=errmsg%>
+</h5>
