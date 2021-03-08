@@ -67,12 +67,9 @@ app.use(flash());
 //認証用ストラテジ
 passport.use(new LocalStrategy(function(username, password, done)
 {
-    console.log('check start')
     const query = 'select * from "users" where users.username = $1';
     const value = [username];
-    console.log('connect start')    
     user.connect()    
-    .then(() => console.log("Connected successfuly"))
     .then(() => user.query(query,value))
     .then(result => {
         if(result.rows[0].password === password){
@@ -87,7 +84,6 @@ passport.use(new LocalStrategy(function(username, password, done)
 
 passport.serializeUser(function(user, done) {
     done(null, user);
-    console.log('serialize');
 });
   
 passport.deserializeUser(function(user, done) {
@@ -118,12 +114,14 @@ app.post('/login', function(req, res, next){
         failureFlash:    true
     })
 );
-
 app.get('/', post.show);
 app.post('/', post.add);
 app.post('/done',post.done);
 app.get('/donelist', post.showdonelist);
+app.get('/alldata', post.alldatashow);
+app.post('/alldata', post.deletealldata);
 app.get('/useradd', post.useradd);
+app.post('/useradd', post.registrate);
 //ログアウト
 app.post('/logout', post.logout);
 

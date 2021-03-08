@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <a href="/">戻る</a>
+    <table>
+        <tr>
+            <th>id</th>
+            <th>データ</th>
+            <th>追加日</th>
+            <th>追加者</th>   
+            <th>完了フラグ</th>                                                
+        </tr>
+        <% for(let i=0;i< todo.rowCount;i++){%>
+            <tr>
+                <td><%=todo.rows[i].id%></td>
+                <td><%=todo.rows[i].data%></td>
+                <td><%=todo.rows[i].date%></td>
+                <td><%=todo.rows[i].adduser%></td>
+                <td><%=todo.rows[i].flgdone%></td>
+            </tr>
+        <%}%>         
+    </table>
+    <form action="/alldata" method="post">
+        <input type="submit" value="全削除">
+    </form>
+</body>
+</html>

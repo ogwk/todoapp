@@ -9,6 +9,7 @@
     <header>
         <h1><%=user.username%>のToDoリスト</h1>
         <a href="/donelist">完了タスク</a>
+        <a href="/alldata">データ一覧</a>
         <form action="/logout" method="post">
             <input type="submit" value="ログアウト"/>
         </form>
@@ -18,17 +19,19 @@
         <input required type="text" name="add" placeholder=""/>
         <input type="submit" value="登録"/>
     </form>
-    <form action="/done" method="post">
-        <% for(let i=0;i< datas.rowCount;i++){%>
+
+    <% for(let i=0;i< datas.rowCount;i++){%>
+        <form action="/done" method="post">
             <li>
+                <input type="submit" value = "done"/>                
                 <%let num = datas.rows[i].id%>
                 <input type="hidden" name="id" value=<%=num%>>
-                <input type="checkbox" name="datalist"value=<%=num%>>
                 <%=datas.rows[i].data%>
             </li>
-        <%}%>
-        <input type="submit" value = "done"/>
-    </form>
+        </form>
+    <%}%>
+        
+    
     
     <footer>
 

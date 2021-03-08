@@ -36,7 +36,9 @@ exports.index = function(req, res){
     res.render('login', {errormessage:error});
 }
 
- 
+ /*
+    ログイン
+ */
 exports.login = function(req, res, next){                         
 
     usercheck(req, res,next);          
@@ -47,7 +49,9 @@ exports.login = function(req, res, next){
         failureFlash:    true
     })
 }
-
+ /*
+     todoリスト一覧を表示
+ */
 exports.show = function(req, res){
     if(!req.user){
         var user = {username:"nobody", password:""};
@@ -55,11 +59,9 @@ exports.show = function(req, res){
         var user = req.user;
     } 
     const query = 'select * from "todolist" where adduser = $1 and flgdone = false';
-
     const value = [user.username];
  
     todolist.connect()    
-    .then(() => console.log("Connected successfuly"))
     .then(() => todolist.query(query,value))
     .then(results => {
         if(!req.user){
@@ -71,6 +73,9 @@ exports.show = function(req, res){
     .catch((e => console.log(e)))
 }
 
+ /*
+    完了リスト一覧を表示
+ */
 exports.showdonelist = function(req, res){
     if(!req.user){
         var user = {username:"nobody", password:""};
@@ -78,11 +83,9 @@ exports.showdonelist = function(req, res){
         var user = req.user;
     } 
     const query = 'select * from "todolist" where adduser = $1 and flgdone = true';
-
     const value = [user.username];
  
     todolist.connect()    
-    .then(() => console.log("Connected successfuly"))
     .then(() => todolist.query(query,value))
     .then(results => {
         if(!req.user){
@@ -94,59 +97,115 @@ exports.showdonelist = function(req, res){
     .catch((e => console.log(e)))
 }
 
+ /*
+    Todoリストを追加
+ */
 exports.add = function(req, res){
+    let username = '';
     if(!req.user){
-        const user = {username:"nobody", password:""};
+        username = 'nobody';
     }else{
-        const user = req.user;
+        username = String(req.user.username);
     } 
-    const adddata = req.body.add;
-    const query = 'INSERT INTO "todolist"(data, date, adduser, flgdone) VALUES($1, CURRENT_DATE, $2,false) RETURNING *';
-    const value = [adddata, user.username];
+    const adddata = String(req.body.add);
+    const query = 'insert into "todolist"(data, date, adduser, flgdone) VALUES($1, CURRENT_DATE, $2,false) RETURNING *';
+    const value = [adddata, username];
+    console.log(value);
     todolist.query(query, value)
-    .then(result => {
-        console.log('new data add');
-        res.redirect('/')})
+    .then(result => res.redirect('/'))
     .catch((e => console.log(e)))
 }
 
+ /*
+    ユーザー登録画面表示
+ */
 exports.useradd = function(req, res){
-    const errmsg = "";
-    res.render('useradd',{errmsg:errmsg});
+    let {msg} = req.flash();
+    if(!msg){const msg = '';}
+    res.render('useradd',{msg:msg});
 }
 
+ /*
+    ユーザー登録
+ */
+exports.registrate = function(req, res){
+   const username = req.body.username;
+   const password1 =req.body.password1;
+   const password2 =req.body.password2;
+   //入力チェック
+   if(username === ""){
+        req.flash('msg', 'ユーザー名を入力してください');
+        res.redirect('/useradd');
+   }
+   else if(password1 === ""){
+        req.flash('msg', 'パスワードを入力してください。');
+        res.redirect('/useradd');
+    }   
+    else if(password2 === ""){
+        req.flash('msg', 'パスワード(再入力）を入力してください。');
+        res.redirect('/useradd');
+     }       
+     else if(password1 !== password2){
+        req.flash('msg', '再入力されたパスワードが異なります。');
+        res.redirect('/useradd');
+     }
+     else{
+        const query = 'insert into "users"(username,password) values($1,$2)';
+        const value = [username,password1];
+        user.query(query, value)        
+        .then(results => {
+            req.flash('msg', '登録が完了しました。');
+            res.redirect('/useradd');
+        })        
+        .catch(e => console.log(e))
+     }
+}
+
+
+ /*
+    選択したtodoリストを完了に変更
+ */
 exports.done = function(req, res){
-    console.log(typeof req.body.datalist);
-    const datalists = [];
-    for(let ii = 0;ii < req.body.datalist.length;ii++){
-        datalists.push(String(req.body.datalist[ii]));
-    }
-    
-    console.log(datalists);
+    let data = parseInt(req.body.id);
     const query = 'update "todolist" set flgdone = true where id in ($1)'; 
-    const value = [datalists.join()];//[]忘れない
-    console.log([value]);
+    const value = [data]//[]忘れない
     todolist.query(query,value)
-            .then(result => res.redirect('/'))
-            .catch(e => {console.log(e)
-            console.log(query)})
+        .then(result => res.redirect('/'))
+        .catch(e => console.log(e))
 } 
 
-function updatedonelist(req,res,data){
-    const query = 'update "todolist" set flgdone = true where id = $1';
-    const value = [data];
-    todolist.query(query,value)
-    .catch(e => console.log(e))
-}
 
-    
+ /*
+    全てのtodoリストを表示
+ */
+exports.alldatashow = function(req, res){
+    const query = 'select * from "todolist" order by id asc'; 
+    todolist.query(query)
+            .then(result => res.render('alldata',{todo:result}))
+            .catch(e => console.log(e))
+} 
 
+ /*
+    全削除
+ */
+exports.deletealldata = function(req, res){
+    const query = 'delete from "todolist"'; 
+    todolist.query(query)
+            .then(result => res.redirect('/alldata'))
+            .catch(e => console.log(e))
+} 
+
+ /*
+    ログアウト
+ */
 exports.logout = function(req, res){
     //cookie削除
     res.redirect('/login')
 }
 
-
+ /*
+    入力内容チェック関数（未使用）
+ */
 const usercheck = function(req, res, next){
     const username = req.body.username;
     const password = req.body.password;    
