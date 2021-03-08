@@ -9,6 +9,8 @@ const session = require('express-session');
 //ビュー
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
+//ポート番号
+const port = process.env.PORT || 8000;
 
 //post
 const post = require('./routes/posts');
@@ -125,5 +127,5 @@ app.post('/useradd', post.registrate);
 //ログアウト
 app.post('/logout', post.logout);
 
-app.listen(8000);
+app.listen(port);
 console.log("server starting...");
